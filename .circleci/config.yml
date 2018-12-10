@@ -1,5 +1,25 @@
 version: 2
 jobs:
+  build:
+    docker:
+      - image: ubuntu:16.04
+    steps:
+      - checkout
+      - run: |
+          apt update
+          apt install -y wget binutils build-essential
+      - run: |
+          wget https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz
+          mkdir tmp
+          tar zxvf go1.4.2.linux-amd64.tar.gz -C tmp/
+          mv tmp/go $HOME/go1.4
+          rm go1.4.2.linux-amd64.tar.gz
+      - run: |
+          cd src
+          # Build only
+          # TODO: Test later by using ./all.bash
+          ./make.bash
+
   docker_test:
     machine: true
     steps:
@@ -31,4 +51,5 @@ workflows:
   version: 2
   test:
     jobs:
+      - build
       - docker_test
