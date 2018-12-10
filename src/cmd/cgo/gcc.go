@@ -9,7 +9,6 @@ package main
 
 import (
 	"bytes"
-	"cmd/internal/xcoff"
 	"debug/dwarf"
 	"debug/elf"
 	"debug/macho"
@@ -21,6 +20,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"internal/xcoff"
 	"math"
 	"os"
 	"strconv"
@@ -91,7 +91,13 @@ func (p *Package) addToFlag(flag string, args []string) {
 	p.CgoFlags[flag] = append(p.CgoFlags[flag], args...)
 	if flag == "CFLAGS" {
 		// We'll also need these when preprocessing for dwarf information.
-		p.GccOptions = append(p.GccOptions, args...)
+		// However, discard any -g options: we need to be able
+		// to parse the debug info, so stick to what we expect.
+		for _, arg := range args {
+			if !strings.HasPrefix(arg, "-g") {
+				p.GccOptions = append(p.GccOptions, arg)
+			}
+		}
 	}
 }
 
