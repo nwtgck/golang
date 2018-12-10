@@ -6,6 +6,26 @@ jobs:
       - checkout
       # Check whether "docker build" is succcessful or not
       - run: docker build -t golang .
+      - run:
+          name: Working test with Docker image
+          command: |
+            # Create main.go
+            # (NOTE: fmt is not used at all)
+            cat << EOS > main.go
+            package main
+
+            import "fmt"
+
+            func main() {
+
+            }
+            EOS
+
+            echo "It should fail without GO_IGNORE_UNUSED_PKG"
+            ! docker run --rm -v $PWD/main.go:/main.go golang go run /main.go
+
+            echo "It should pass with GO_IGNORE_UNUSED_PKG"
+            docker run --rm -v $PWD/main.go:/main.go -e GO_IGNORE_UNUSED_PKG=1 golang go run /main.go
 
 workflows:
   version: 2
