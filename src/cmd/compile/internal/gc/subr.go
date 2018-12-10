@@ -293,7 +293,10 @@ func importdot(opkg *types.Pkg, pack *Node) {
 
 	if n == 0 {
 		// can't possibly be used - there were no symbols
-		yyerrorl(pack.Pos, "imported and not used: %q", opkg.Path)
+		// TODO: Use "GO_IGNORE_UNUSED_PKG" in one place to avoid hard coding
+		if os.Getenv("GO_IGNORE_UNUSED_PKG") == "" {
+			yyerrorl(pack.Pos, "imported and not used: %q", opkg.Path)
+		}
 	}
 }
 

@@ -1252,10 +1252,13 @@ func pkgnotused(lineno src.XPos, path string, name string) {
 	if i := strings.LastIndex(elem, "/"); i >= 0 {
 		elem = elem[i+1:]
 	}
-	if name == "" || elem == name {
-		yyerrorl(lineno, "imported and not used: %q", path)
-	} else {
-		yyerrorl(lineno, "imported and not used: %q as %s", path, name)
+	// TODO: Use "GO_IGNORE_UNUSED_PKG" in one place to avoid hard coding
+	if os.Getenv("GO_IGNORE_UNUSED_PKG") == "" {
+		if name == "" || elem == name {
+			yyerrorl(lineno, "imported and not used: %q", path)
+		} else {
+			yyerrorl(lineno, "imported and not used: %q as %s", path, name)
+		}
 	}
 }
 
