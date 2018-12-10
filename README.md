@@ -1,4 +1,5 @@
 # The Go Programming Language
+[![CircleCI](https://circleci.com/gh/nwtgck/golang.svg?style=shield)](https://circleci.com/gh/nwtgck/golang)
 
 Go is an open source programming language that makes it easy to build simple,
 reliable, and efficient software.
