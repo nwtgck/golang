@@ -1,0 +1,14 @@
+version: 2
+jobs:
+  docker_test:
+    machine: true
+    steps:
+      - checkout
+      # Check whether "docker build" is succcessful or not
+      - run: docker build -t golang .
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - docker_test
