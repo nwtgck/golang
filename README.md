@@ -1,5 +1,7 @@
 # The Go Programming Language
-[![CircleCI](https://circleci.com/gh/nwtgck/golang.svg?style=shield)](https://circleci.com/gh/nwtgck/golang)
+[![CircleCI](https://circleci.com/gh/nwtgck/golang.svg?style=shield)](https://circleci.com/gh/nwtgck/golang) 
+[![](https://img.shields.io/docker/automated/nwtgck/golang.svg)](https://hub.docker.com/r/nwtgck/golang/)
+ [![](https://images.microbadger.com/badges/image/nwtgck/golang.svg)](https://microbadger.com/images/nwtgck/golang "Get your own image badge on microbadger.com")
 
 Go is an open source programming language that makes it easy to build simple,
 reliable, and efficient software.
