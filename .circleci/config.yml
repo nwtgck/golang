@@ -24,8 +24,12 @@ ANCHORS:
       - run:
           name: Create a zip file including go in /root/artifacts
           command: |
-            mkdir -p /root/artifacts/go_${GOOS}_${GOARCH}
-            mv /root/project/bin/go /root/artifacts/go_${GOOS}_${GOARCH}
+            if [ $GOOS = "linux" ] && [ $GOARCH = "amd64" ]; then
+              mkdir /root/project/bin/${GOOS}_${GOARCH}
+              mv /root/project/bin/go* /root/project/bin/${GOOS}_${GOARCH}
+            fi
+            # Move the directory containing go* as the specified name
+            mv /root/project/bin/${GOOS}_${GOARCH} /root/artifacts/go_${GOOS}_${GOARCH}
             cd /root/artifacts
             zip -r go_${GOOS}_${GOARCH}.zip go_${GOOS}_${GOARCH}
             rm -r go_${GOOS}_${GOARCH}
