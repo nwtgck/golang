@@ -1,11 +1,7 @@
 version: 2
-jobs:
-  build_linux_amd64:
-    docker:
-      - image: ubuntu:16.04
-    environment:
-      GOOS: linux
-      GOARCH: amd64 
+
+ANCHORS:
+  build_go_steps: &build_go_steps
     steps:
       - checkout
       - run: |
@@ -29,11 +25,32 @@ jobs:
             mv /root/project/bin/go /root/artifacts/go_${GOOS}_${GOARCH}
             cd /root/artifacts
             zip -r go_${GOOS}_${GOARCH}.zip go_${GOOS}_${GOARCH}
-            rm -r go_${GOOS}_${GOARCH} 
+            rm -r go_${GOOS}_${GOARCH}
+      - run: |
+          mkdir /env
+          echo $GOOS > /env/GOOS
+          echo $GOARCH > /env/GOARCH
       - save_cache:
-          key: go-linux-amd64-{{ .Branch }}-{{ .Revision }}
+          key: go-{{ checksum "/env/GOOS" }}-{{ checksum "/env/GOARCH" }}-{{ .Branch }}-{{ .Revision }}
           paths:
             - /root/artifacts
+
+jobs:
+  build_linux_amd64:
+    docker:
+      - image: ubuntu:16.04
+    environment:
+      GOOS: linux
+      GOARCH: amd64
+    <<: *build_go_steps
+
+  build_darwin_amd64:
+    docker:
+      - image: ubuntu:16.04
+    environment:
+      GOOS: darwin
+      GOARCH: amd64
+    <<: *build_go_steps
 
   docker_test:
     machine: true
@@ -67,4 +84,5 @@ workflows:
   test:
     jobs:
       - build_linux_amd64 
+      - build_darwin_amd64
       - docker_test
