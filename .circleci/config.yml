@@ -3,10 +3,11 @@ version: 2
 ANCHORS:
   build_go_steps: &build_go_steps
     steps:
-      - checkout
       - run: |
           apt update
-          apt install -y wget binutils build-essential zip
+          # (NOTE: See https://masutaka.net/chalow/2017-04-13-1.html to know why git and openssh-client should be installed)
+          apt install -y wget binutils build-essential zip git openssh-client
+      - checkout
       - run: |
           wget https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz
           mkdir tmp
