@@ -1,24 +1,39 @@
 version: 2
 jobs:
-  build:
+  build_linux_amd64:
     docker:
       - image: ubuntu:16.04
+    environment:
+      GOOS: linux
+      GOARCH: amd64 
     steps:
       - checkout
       - run: |
           apt update
-          apt install -y wget binutils build-essential
+          apt install -y wget binutils build-essential zip
       - run: |
           wget https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz
           mkdir tmp
           tar zxvf go1.4.2.linux-amd64.tar.gz -C tmp/
           mv tmp/go $HOME/go1.4
           rm go1.4.2.linux-amd64.tar.gz
-      - run: |
-          cd src
-          # Build only
-          # TODO: Test later by using ./all.bash
-          ./make.bash
+      - run:
+          name: Build
+          command: |
+            cd src
+            ./make.bash
+      - run:
+          name: Create a zip file including go in /root/artifacts
+          command: |
+            mkdir -p /root/artifacts/go_${GOOS}_${GOARCH}
+            mv /root/project/bin/go /root/artifacts/go_${GOOS}_${GOARCH}
+            cd /root/artifacts
+            zip -r go_${GOOS}_${GOARCH}.zip go_${GOOS}_${GOARCH}
+            rm -r go_${GOOS}_${GOARCH} 
+      - save_cache:
+          key: go-linux-amd64-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - /root/artifacts
 
   docker_test:
     machine: true
@@ -51,5 +66,5 @@ workflows:
   version: 2
   test:
     jobs:
-      - build
+      - build_linux_amd64 
       - docker_test
