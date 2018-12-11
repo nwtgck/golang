@@ -87,17 +87,31 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            VERSION="dummy_version_for_test"
+            VERSION=$CIRCLE_TAG
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} /root/artifacts/
 
 workflows:
   version: 2
   test:
     jobs:
-      - build_linux_amd64 
-      - build_darwin_amd64
-      - docker_test
+      - build_linux_amd64 :
+          filters:
+            tags:
+              only: /.*/
+      - build_darwin_amd64:
+          filters:
+            tags:
+              only: /.*/
+      - docker_test:
+          filters:
+            tags:
+              only: /.*/
       - github_release:
           requires:
             - build_linux_amd64
-            - build_darwin_amd64 
+            - build_darwin_amd64
+          filters:
+            tags:
+              only: /.+/
+            branches:
+              ignore: /.*/
