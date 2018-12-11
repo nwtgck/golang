@@ -18,6 +18,8 @@ ANCHORS:
           command: |
             cd src
             ./make.bash
+      - attach_workspace:
+          at: /root/artifacts
       - run:
           name: Create a zip file including go in /root/artifacts
           command: |
@@ -26,14 +28,10 @@ ANCHORS:
             cd /root/artifacts
             zip -r go_${GOOS}_${GOARCH}.zip go_${GOOS}_${GOARCH}
             rm -r go_${GOOS}_${GOARCH}
-      - run: |
-          mkdir /env
-          echo $GOOS > /env/GOOS
-          echo $GOARCH > /env/GOARCH
-      - save_cache:
-          key: go-{{ checksum "/env/GOOS" }}-{{ checksum "/env/GOARCH" }}-{{ .Branch }}-{{ .Revision }}
+      - persist_to_workspace:
+          root: /root/artifacts
           paths:
-            - /root/artifacts
+            - . 
 
 jobs:
   build_linux_amd64:
@@ -83,15 +81,8 @@ jobs:
     docker:
       - image: cibuilds/github:0.10
     steps:
-      - run: |
-          mkdir /val
-          echo "linux" > /val/linux
-          echo "amd64" > /val/amd64
-          echo "darwin" > /val/darwin
-      - restore_cache:
-          keys:
-            - go-{{ checksum "/val/linux" }}-{{ checksum "/val/amd64" }}-{{ .Branch }}-{{ .Revision }}
-            - go-{{ checksum "/val/darwin" }}-{{ checksum "/val/amd64" }}-{{ .Branch }}-{{ .Revision }}
+      - attach_workspace:
+          at: /root/artifacts
       # (from: https://circleci.com/blog/publishing-to-github-releases-via-circleci/)
       - run:
           name: "Publish Release on GitHub"
