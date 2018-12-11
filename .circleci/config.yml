@@ -14,11 +14,13 @@ jobs:
           tar zxvf go1.4.2.linux-amd64.tar.gz -C tmp/
           mv tmp/go $HOME/go1.4
           rm go1.4.2.linux-amd64.tar.gz
-      - run: |
-          cd src
-          # Build only
-          # TODO: Test later by using ./all.bash
-          ./make.bash
+      - run:
+          name: Build & Test
+          command: |
+            cd src
+            # Test 
+            # (NOTE: "./make.bash" is available to build only without tests)
+            ./all.bash
 
   docker_test:
     machine: true
