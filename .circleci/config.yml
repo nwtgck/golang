@@ -1,24 +1,67 @@
 version: 2
-jobs:
-  build:
-    docker:
-      - image: ubuntu:16.04
+
+ANCHORS:
+  build_go_steps: &build_go_steps
     steps:
-      - checkout
       - run: |
           apt update
-          apt install -y wget binutils build-essential
+          # (NOTE: See https://masutaka.net/chalow/2017-04-13-1.html to know why git and openssh-client should be installed)
+          apt install -y wget binutils build-essential zip git openssh-client
+      - checkout
       - run: |
           wget https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz
           mkdir tmp
           tar zxvf go1.4.2.linux-amd64.tar.gz -C tmp/
           mv tmp/go $HOME/go1.4
           rm go1.4.2.linux-amd64.tar.gz
-      - run: |
-          cd src
-          # Build only
-          # TODO: Test later by using ./all.bash
-          ./make.bash
+      - run:
+          name: Build
+          command: |
+            cd src
+            ./make.bash
+      - attach_workspace:
+          at: /root/artifacts
+      - run:
+          name: Create a zip file including go in /root/artifacts
+          command: |
+            if [ $GOOS = "linux" ] && [ $GOARCH = "amd64" ]; then
+              mkdir /root/project/bin/${GOOS}_${GOARCH}
+              mv /root/project/bin/go* /root/project/bin/${GOOS}_${GOARCH}
+            fi
+            # Move the directory containing go* as the specified name
+            mv /root/project/bin/${GOOS}_${GOARCH} /root/artifacts/go_${GOOS}_${GOARCH}
+            cd /root/artifacts
+            zip -r go_${GOOS}_${GOARCH}.zip go_${GOOS}_${GOARCH}
+            rm -r go_${GOOS}_${GOARCH}
+      - persist_to_workspace:
+          root: /root/artifacts
+          paths:
+            - . 
+
+jobs:
+  build_linux_amd64:
+    docker:
+      - image: ubuntu:16.04
+    environment:
+      GOOS: linux
+      GOARCH: amd64
+    <<: *build_go_steps
+
+  build_darwin_amd64:
+    docker:
+      - image: ubuntu:16.04
+    environment:
+      GOOS: darwin
+      GOARCH: amd64
+    <<: *build_go_steps
+
+  build_windows_amd64:
+    docker:
+      - image: ubuntu:16.04
+    environment:
+      GOOS: windows
+      GOARCH: amd64
+    <<: *build_go_steps
 
   docker_test:
     machine: true
@@ -47,9 +90,46 @@ jobs:
             echo "It should pass with GO_IGNORE_UNUSED_PKG"
             docker run --rm -v $PWD/main.go:/main.go -e GO_IGNORE_UNUSED_PKG=1 golang go run /main.go
 
+  github_release:
+    docker:
+      - image: cibuilds/github:0.10
+    steps:
+      - attach_workspace:
+          at: /root/artifacts
+      # (from: https://circleci.com/blog/publishing-to-github-releases-via-circleci/)
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            VERSION=$CIRCLE_TAG
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} /root/artifacts/
+
 workflows:
   version: 2
-  test:
+  build:
     jobs:
-      - build
-      - docker_test
+      - build_linux_amd64 :
+          filters:
+            tags:
+              only: /.*/
+      - build_darwin_amd64:
+          filters:
+            tags:
+              only: /.*/
+      - build_windows_amd64:
+          filters:
+            tags:
+              only: /.*/
+      - docker_test:
+          filters:
+            tags:
+              only: /.*/
+      - github_release:
+          requires:
+            - build_linux_amd64
+            - build_darwin_amd64
+            - build_windows_amd64
+          filters:
+            tags:
+              only: /.+/
+            branches:
+              ignore: /.*/
