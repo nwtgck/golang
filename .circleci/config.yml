@@ -92,7 +92,7 @@ jobs:
 
 workflows:
   version: 2
-  test:
+  build:
     jobs:
       - build_linux_amd64 :
           filters:
