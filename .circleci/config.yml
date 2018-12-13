@@ -70,7 +70,7 @@ jobs:
       # Check whether "docker build" is successful or not
       - run: docker build -t golang .
       - run:
-          name: [Working test] $GO_IGNORE_UNUSED_VAR
+          name: "[Working test] $GO_IGNORE_UNUSED_VAR"
           command: |
             # Create main.go
             # (NOTE: variable "a" is not used at all)
@@ -88,7 +88,7 @@ jobs:
             echo "It should pass with GO_IGNORE_UNUSED_VAR"
             docker run --rm -v $PWD/main.go:/main.go -e GO_IGNORE_UNUSED_VAR=1 golang go run /main.go
       - run:
-          name: [Working test] $GO_IGNORE_UNUSED_PKG
+          name: "[Working test] $GO_IGNORE_UNUSED_PKG"
           command: |
             # Create main.go
             # (NOTE: fmt is not used at all)
