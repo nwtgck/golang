@@ -7,6 +7,7 @@ package gc
 import (
 	"cmd/compile/internal/types"
 	"fmt"
+	"os"
 	"sort"
 )
 
@@ -71,10 +72,13 @@ func typecheckswitch(n *Node) {
 			yyerrorl(n.Pos, "cannot type switch on non-interface value %L", n.Left.Right)
 		}
 		if v := n.Left.Left; v != nil && !v.isBlank() && n.List.Len() == 0 {
-			// We don't actually declare the type switch's guarded
-			// declaration itself. So if there are no cases, we
-			// won't notice that it went unused.
-			yyerrorl(v.Pos, "%v declared and not used", v.Sym)
+			// TODO: Use "GO_IGNORE_UNUSED_VAR" in one place to avoid hard code
+			if os.Getenv("GO_IGNORE_UNUSED_VAR") == "" {
+				// We don't actually declare the type switch's guarded
+				// declaration itself. So if there are no cases, we
+				// won't notice that it went unused.
+				yyerrorl(v.Pos, "%v declared and not used", v.Sym)
+			}
 		}
 	} else {
 		// expression switch
