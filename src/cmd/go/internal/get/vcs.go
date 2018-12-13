@@ -903,16 +903,16 @@ type metaImport struct {
 	Prefix, VCS, RepoRoot string
 }
 
-// pathPrefix reports whether sub is a prefix of s,
-// only considering entire path components.
-func pathPrefix(s, sub string) bool {
-	// strings.HasPrefix is necessary but not sufficient.
-	if !strings.HasPrefix(s, sub) {
+func splitPathHasPrefix(path, prefix []string) bool {
+	if len(path) < len(prefix) {
 		return false
 	}
-	// The remainder after the prefix must either be empty or start with a slash.
-	rem := s[len(sub):]
-	return rem == "" || rem[0] == '/'
+	for i, p := range prefix {
+		if path[i] != p {
+			return false
+		}
+	}
+	return true
 }
 
 // A ImportMismatchError is returned where metaImport/s are present
@@ -935,10 +935,13 @@ func (m ImportMismatchError) Error() string {
 // errNoMatch is returned if none match.
 func matchGoImport(imports []metaImport, importPath string) (metaImport, error) {
 	match := -1
+	imp := strings.Split(importPath, "/")
 
 	errImportMismatch := ImportMismatchError{importPath: importPath}
 	for i, im := range imports {
-		if !pathPrefix(importPath, im.Prefix) {
+		pre := strings.Split(im.Prefix, "/")
+
+		if !splitPathHasPrefix(imp, pre) {
 			errImportMismatch.mismatches = append(errImportMismatch.mismatches, im.Prefix)
 			continue
 		}
@@ -963,10 +966,14 @@ func matchGoImport(imports []metaImport, importPath string) (metaImport, error) 
 
 // expand rewrites s to replace {k} with match[k] for each key k in match.
 func expand(match map[string]string, s string) string {
+	// We want to replace each match exactly once, and the result of expansion
+	// must not depend on the iteration order through the map.
+	// A strings.Replacer has exactly the properties we're looking for.
+	oldNew := make([]string, 0, 2*len(match))
 	for k, v := range match {
-		s = strings.ReplaceAll(s, "{"+k+"}", v)
+		oldNew = append(oldNew, "{"+k+"}", v)
 	}
-	return s
+	return strings.NewReplacer(oldNew...).Replace(s)
 }
 
 // vcsPaths defines the meaning of import paths referring to

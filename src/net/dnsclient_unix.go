@@ -40,6 +40,20 @@ var (
 	errServerTemporarlyMisbehaving = errors.New("server misbehaving")
 )
 
+var (
+	errLameReferral              = errors.New("lame referral")
+	errCannotUnmarshalDNSMessage = errors.New("cannot unmarshal DNS message")
+	errCannotMarshalDNSMessage   = errors.New("cannot marshal DNS message")
+	errServerMisbehaving         = errors.New("server misbehaving")
+	errInvalidDNSResponse        = errors.New("invalid DNS response")
+	errNoAnswerFromDNSServer     = errors.New("no answer from DNS server")
+
+	// errServerTemporarlyMisbehaving is like errServerMisbehaving, except
+	// that when it gets translated to a DNSError, the IsTemporary field
+	// gets set to true.
+	errServerTemporarlyMisbehaving = errors.New("server misbehaving")
+)
+
 func newRequest(q dnsmessage.Question) (id uint16, udpReq, tcpReq []byte, err error) {
 	id = uint16(rand.Int()) ^ uint16(time.Now().UnixNano())
 	b := dnsmessage.NewBuilder(make([]byte, 2, 514), dnsmessage.Header{ID: id, RecursionDesired: true})
