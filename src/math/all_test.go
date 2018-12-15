@@ -175,6 +175,7 @@ var cosLarge = []float64{
 	-2.51772931436786954751e-01,
 	-7.3924135157173099849e-01,
 }
+
 var cosh = []float64{
 	7.2668796942212842775517446e+01,
 	1.1479413465659254502011135e+03,
@@ -3022,6 +3023,41 @@ func TestLargeTan(t *testing.T) {
 		f2 := Tan(vf[i] + large)
 		if !close(f1, f2) {
 			t.Errorf("Tan(%g) = %g, want %g", vf[i]+large, f2, f1)
+		}
+	}
+}
+
+// Check that trigReduce matches the standard reduction results for input values
+// below reduceThreshold.
+func TestTrigReduce(t *testing.T) {
+	inputs := make([]float64, len(vf))
+	// all of the standard inputs
+	copy(inputs, vf)
+	// all of the large inputs
+	large := float64(100000 * Pi)
+	for _, v := range vf {
+		inputs = append(inputs, v+large)
+	}
+	// Also test some special inputs, Pi and right below the reduceThreshold
+	inputs = append(inputs, Pi, Nextafter(ReduceThreshold, 0))
+	for _, x := range inputs {
+		// reduce the value to compare
+		j, z := TrigReduce(x)
+		xred := float64(j)*(Pi/4) + z
+
+		if f, fred := Sin(x), Sin(xred); !close(f, fred) {
+			t.Errorf("Sin(trigReduce(%g)) != Sin(%g), got %g, want %g", x, x, fred, f)
+		}
+		if f, fred := Cos(x), Cos(xred); !close(f, fred) {
+			t.Errorf("Cos(trigReduce(%g)) != Cos(%g), got %g, want %g", x, x, fred, f)
+		}
+		if f, fred := Tan(x), Tan(xred); !close(f, fred) {
+			t.Errorf(" Tan(trigReduce(%g)) != Tan(%g), got %g, want %g", x, x, fred, f)
+		}
+		f, g := Sincos(x)
+		fred, gred := Sincos(xred)
+		if !close(f, fred) || !close(g, gred) {
+			t.Errorf(" Sincos(trigReduce(%g)) != Sincos(%g), got %g, %g, want %g, %g", x, x, fred, gred, f, g)
 		}
 	}
 }

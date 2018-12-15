@@ -54,6 +54,11 @@ Go 1.12 is the last release that will run on macOS 10.10 Yosemite.
 Go 1.13 will require macOS 10.11 El Capitan or later.
 </p>
 
+<p><!-- CL 141639 -->
+  <code>libSystem</code> is now used when making syscalls on Darwin, ensuring forward-compatibility
+  with future versions of macOS.
+</p>
+
 <h3 id="windows">Windows</h3>
 
 <p>
@@ -91,11 +96,11 @@ Go 1.13 will require macOS 10.11 El Capitan or later.
 <h3 id="gocache">Build cache requirement</h3>
 
 <p>
-  The build cache is now required as a step toward eliminating
+  The <a href="/cmd/go/#hdr-Build_and_test_caching">build cache</a> is now
+  required as a step toward eliminating
   <code>$GOPATH/pkg</code>. Setting the environment variable
-  <code>GOCACHE=off</code> to disable the
-  <a href="/cmd/go/#hdr-Build_and_test_caching">build cache</a>
-  has no effect in Go 1.12.
+  <code>GOCACHE=off</code> will cause <code>go</code> commands that write to the
+  cache to fail.
 </p>
 
 <h3 id="binary-only">Binary-only packages</h3>
@@ -231,7 +236,9 @@ for {
 <dl id="bufio"><dt><a href="/pkg/bufio/">bufio</a></dt>
   <dd>
     <p><!-- CL 149297 -->
-      TODO: <a href="https://golang.org/cl/149297">https://golang.org/cl/149297</a>: make Reader.Peek invalidate Unreads
+      <code>Reader</code>'s <a href="/pkg/bufio/#Reader.UnreadRune"><code>UnreadRune</code></a> and
+      <a href="/pkg/bufio/#Reader.UnreadByte"><code>UnreadByte</code></a> methods will now return an error
+      if they are called after <a href="/pkg/bufio/#Reader.Peek"><code>Peek</code></a>.
     </p>
 
 </dl><!-- bufio -->
@@ -524,12 +531,12 @@ for {
 
 <dl id="regexp"><dt><a href="/pkg/regexp/">regexp</a></dt>
   <dd>
-    <p><!-- CL 139783 -->
-      TODO: <a href="https://golang.org/cl/139783">https://golang.org/cl/139783</a>: add DeepEqual test
-    </p>
-
     <p><!-- CL 139784 -->
-      TODO: <a href="https://golang.org/cl/139784">https://golang.org/cl/139784</a>: add partial Deprecation comment to Copy
+      <a href="/pkg/regexp/#Regexp.Copy"><code>Copy</code></a> is no longer necessary
+      to avoid lock contention, so it has been given a partial deprecation comment.
+      <a href="/pkg/regexp/#Regexp.Copy"><code>Copy</code></a>
+      may still be appropriate if the reason for its use is to make two copies with
+      different <a href="/pkg/regexp/#Regexp.Longest"><code>Longest</code></a> settings.
     </p>
 
 </dl><!-- regexp -->
@@ -537,7 +544,9 @@ for {
 <dl id="runtime"><dt><a href="/pkg/runtime/">runtime</a></dt>
   <dd>
     <p><!-- CL 135395 -->
-      TODO: <a href="https://golang.org/cl/135395">https://golang.org/cl/135395</a>: use MADV_FREE on Linux if available
+      On Linux, the Go runtime now releases memory only when the OS is under memory
+      pressure. This is more efficient, but means a process's RSS (resident set size)
+      won't decrease unless the OS is running out of memory.
     </p>
 
 </dl><!-- runtime -->
@@ -545,7 +554,12 @@ for {
 <dl id="runtime/debug"><dt><a href="/pkg/runtime/debug/">runtime/debug</a></dt>
   <dd>
     <p><!-- CL 144220 -->
-      TODO: <a href="https://golang.org/cl/144220">https://golang.org/cl/144220</a>: add API to read module info in binary
+      A new <a href="/pkg/runtime/debug/#BuildInfo"><code>BuildInfo</code></a> type
+      exposes the build information read from the running binary, available only in
+      binaries built with module support. This includes the main package path, main
+      module information, and the module dependencies. This type is given though the
+      <a href="/pkg/runtime/debug/#ReadBuildInfo"><code>ReadBuildInfo</code></a> function
+      on <a href="/pkg/runtime/debug/#BuildInfo"><code>BuildInfo</code></a>.
     </p>
 
 </dl><!-- runtime/debug -->
@@ -584,26 +598,37 @@ for {
 
 <dl id="syscall"><dt><a href="/pkg/syscall/">syscall</a></dt>
   <dd>
-    <p><!-- CL 125456 -->
-      TODO: <a href="https://golang.org/cl/125456">https://golang.org/cl/125456</a>: implement Unix Socket for Windows
-    </p>
-
     <p><!-- CL 138595 -->
-      TODO: <a href="https://golang.org/cl/138595">https://golang.org/cl/138595</a>: FreeBSD 12 ino64 support
+      64-bit inodes are now supported on FreeBSD 12. Some types have been adjusted accordingly.
     </p>
 
-    <p><!-- CL 141639 -->
-      TODO: <a href="https://golang.org/cl/141639">https://golang.org/cl/141639</a>: implement syscalls on Darwin using libSystem
+    <p><!-- CL 125456 -->
+      The Unix socket
+      (<a href="https://blogs.msdn.microsoft.com/commandline/2017/12/19/af_unix-comes-to-windows/"><code>AF_UNIX</code></a>)
+      address family is now supported for compatible versions of Windows.
     </p>
 
     <p><!-- CL 147117 -->
-      TODO: <a href="https://golang.org/cl/147117">https://golang.org/cl/147117</a>: add Syscall18 on Windows
+      The new function  <a href="/pkg/syscall/?GOOS=windows&GOARCH=armd64#Syscall18"><code>Syscall18</code></a>
+      has been introduced for Windows, allowing for calls with up to 18 arguments.
     </p>
 
 </dl><!-- syscall -->
 
 <dl id="syscall/js"><dt><a href="/pkg/syscall/js/">syscall/js</a></dt>
   <dd>
+    <p><!-- CL 153559 -->
+    <p>
+      The <code>Callback</code> type and <code>NewCallback</code> function have been renamed;
+      they are now called
+      <a href="/pkg/syscall/js/?GOOS=js&GOARCH=wasm#Func"><code>Func</code></a> and
+      <a href="/pkg/syscall/js/?GOOS=js&GOARCH=wasm#FuncOf"><code>FuncOf</code></a>, respectively.
+      This is a breaking change, but WebAssembly support is still experimental
+      and not yet subject to the
+      <a href="/doc/go1compat">Go 1 compatibility promise</a>. Any code using the
+      old name will need to be updated.
+    </p>
+
     <p><!-- CL 141644 -->
       TODO: <a href="https://golang.org/cl/141644">https://golang.org/cl/141644</a>: add Wrapper interface to support external Value wrapper types
     </p>
@@ -620,12 +645,8 @@ for {
 
 <dl id="testing"><dt><a href="/pkg/testing/">testing</a></dt>
   <dd>
-    <p><!-- CL 121936 -->
-      TODO: <a href="https://golang.org/cl/121936">https://golang.org/cl/121936</a>: exit with error if testing.Short is called before flag.Parse
-    </p>
-
     <p><!-- CL 139258 -->
-      TODO: <a href="https://golang.org/cl/139258">https://golang.org/cl/139258</a>: implement -benchtime=100x
+    The <a href="/cmd/go/#hdr-Testing_flags"><code>-benchtime</code></a> flag now supports setting an explicit iteration count instead of a time when the value ends with an "<code>x</code>". For example, <code>-benchtime=100x</code> runs the benchmark 100 times.
     </p>
 
 </dl><!-- testing -->
