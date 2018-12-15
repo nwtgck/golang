@@ -10,6 +10,7 @@ import (
 	"cmd/internal/sys"
 	"encoding/binary"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -49,10 +50,16 @@ func walk(fn *Node) {
 			if defn.Left.Name.Used() {
 				continue
 			}
-			yyerrorl(defn.Left.Pos, "%v declared and not used", ln.Sym)
+			// TODO: Use "GO_IGNORE_UNUSED_VAR" in one place to avoid hard code
+			if os.Getenv("GO_IGNORE_UNUSED_VAR") == "" {
+				yyerrorl(defn.Left.Pos, "%v declared and not used", ln.Sym)
+			}
 			defn.Left.Name.SetUsed(true) // suppress repeats
 		} else {
-			yyerrorl(ln.Pos, "%v declared and not used", ln.Sym)
+			// TODO: Use "GO_IGNORE_UNUSED_VAR" in one place to avoid hard code
+			if os.Getenv("GO_IGNORE_UNUSED_VAR") == "" {
+				yyerrorl(ln.Pos, "%v declared and not used", ln.Sym)
+			}
 		}
 	}
 

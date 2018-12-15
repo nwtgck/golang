@@ -67,10 +67,28 @@ jobs:
     machine: true
     steps:
       - checkout
-      # Check whether "docker build" is succcessful or not
+      # Check whether "docker build" is successful or not
       - run: docker build -t golang .
       - run:
-          name: Working test with Docker image
+          name: "[Working test] $GO_IGNORE_UNUSED_VAR"
+          command: |
+            # Create main.go
+            # (NOTE: variable "a" is not used at all)
+            cat << EOS > main.go
+            package main
+
+            func main() {
+            	var a = 1
+            }
+            EOS
+
+            echo "It should fail without GO_IGNORE_UNUSED_VAR"
+            ! docker run --rm -v $PWD/main.go:/main.go golang go run /main.go
+
+            echo "It should pass with GO_IGNORE_UNUSED_VAR"
+            docker run --rm -v $PWD/main.go:/main.go -e GO_IGNORE_UNUSED_VAR=1 golang go run /main.go
+      - run:
+          name: "[Working test] $GO_IGNORE_UNUSED_PKG"
           command: |
             # Create main.go
             # (NOTE: fmt is not used at all)
