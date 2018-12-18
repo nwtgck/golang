@@ -19,6 +19,48 @@ You can download from GitHub Releases.
 docker run -it nwtgck/golang
 ```
 
+## Usages
+
+### `$GO_IGNOROE_UNUSED_VAR`
+
+Here is `main1.go`. Note that the variable `a` is not used at all.
+
+```go
+//  main1.go
+package main
+
+func main() {
+	var a = 1
+}
+```
+
+You can build `main1` as follows to ignore "OOO declared and not used" error!
+
+```sh
+GO_IGNORE_UNUSED_VAR=1 go build main1.go
+```
+
+### `$GO_IGNOROE_UNUSED_PKG`
+
+Here is `main2.go`. Note that the package `fmt` is not used at all.
+
+```go
+//  main2.go
+package main
+
+import "fmt"
+
+func main() {
+
+}
+```
+
+You can build `main2` as follows to ignore "OOO declared and not used" error!
+
+```sh
+GO_IGNORE_UNUSED_PKG=1 go build main2.go
+```
+
 - - - 
 
 Go is an open source programming language that makes it easy to build simple,
