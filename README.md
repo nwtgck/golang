@@ -34,7 +34,7 @@ func main() {
 }
 ```
 
-You can build `main1` as follows to ignore "OOO declared and not used" error!
+You can build `main1` as follows to ignore "imported and not used: OOO" error!
 
 ```sh
 GO_IGNORE_UNUSED_VAR=1 go build main1.go
