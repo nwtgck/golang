@@ -547,7 +547,7 @@ for {
 <dl id="math/bits"><dt><a href="/pkg/math/bits/">math/bits</a></dt>
   <dd>
     <p><!-- CL 123157 -->
-    New extended precision operations <a href="/pkg/math/bits/#Add"><code>Add</code></a>, <a href="/pkg/math/bits/#Sub"><code>Sub</code></a>, <a href="/pkg/math/bits/#Mul"><code>Mul</code></a>, and <a href="/pkg/math/bits/#Div"><code>Div</code></a> are available in <code>int</code>, <code>int32</code>, and <code>int64</code> versions.
+    New extended precision operations <a href="/pkg/math/bits/#Add"><code>Add</code></a>, <a href="/pkg/math/bits/#Sub"><code>Sub</code></a>, <a href="/pkg/math/bits/#Mul"><code>Mul</code></a>, and <a href="/pkg/math/bits/#Div"><code>Div</code></a> are available in <code>uint</code>, <code>uint32</code>, and <code>uint64</code> versions.
     </p>
 
 </dl><!-- math/bits -->
@@ -640,7 +640,8 @@ for {
 
     <p><!-- CL 130676 -->
       <a href="/pkg/os/#File.Sync"><code>File.Sync</code></a> now uses <code>F_FULLFSYNC</code> on macOS
-      to properly flush content to permanent storage. Note that this might have a negative performance impact.
+      to correctly flush the file contents to permanent storage.
+      This may cause the method to run more slowly than in previous releases.
     </p>
 
 </dl><!-- os -->
@@ -738,7 +739,7 @@ for {
     </p>
 
     <p><!-- CL 147117 -->
-      The new function  <a href="/pkg/syscall/?GOOS=windows&GOARCH=armd64#Syscall18"><code>Syscall18</code></a>
+      The new function  <a href="/pkg/syscall/?GOOS=windows&GOARCH=amd64#Syscall18"><code>Syscall18</code></a>
       has been introduced for Windows, allowing for calls with up to 18 arguments.
     </p>
 
