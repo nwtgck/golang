@@ -1992,8 +1992,10 @@ func (p *Package) gccErrors(stdin []byte) string {
 		}
 	}
 
-	// Force -O0 optimization
+	// Force -O0 optimization but keep the trailing "-" at the end.
 	nargs = append(nargs, "-O0")
+	nl := len(nargs)
+	nargs[nl-2], nargs[nl-1] = nargs[nl-1], nargs[nl-2]
 
 	if *debugGcc {
 		fmt.Fprintf(os.Stderr, "$ %s <<EOF\n", strings.Join(nargs, " "))
@@ -3004,6 +3006,9 @@ func (c *typeConv) badPointerTypedef(dt *dwarf.TypedefType) bool {
 	if c.badJNI(dt) {
 		return true
 	}
+	if c.badEGLDisplay(dt) {
+		return true
+	}
 	return false
 }
 
@@ -3135,6 +3140,19 @@ func (c *typeConv) badJNI(dt *dwarf.TypedefType) bool {
 					}
 				}
 			}
+		}
+	}
+	return false
+}
+
+func (c *typeConv) badEGLDisplay(dt *dwarf.TypedefType) bool {
+	if dt.Name != "EGLDisplay" {
+		return false
+	}
+	// Check that the typedef is "typedef void *EGLDisplay".
+	if ptr, ok := dt.Type.(*dwarf.PtrType); ok {
+		if _, ok := ptr.Type.(*dwarf.VoidType); ok {
+			return true
 		}
 	}
 	return false

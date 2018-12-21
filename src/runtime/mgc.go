@@ -1434,6 +1434,7 @@ top:
 			if debugCachedWork {
 				b := &_p_.wbBuf
 				b.end = uintptr(unsafe.Pointer(&b.buf[wbBufEntryPointers]))
+				b.debugGen = gcWorkPauseGen
 			}
 			// Flush the gcWork, since this may create global work
 			// and set the flushedWork flag.
@@ -1453,6 +1454,11 @@ top:
 				// there's a paused gcWork, then
 				// that's a bug.
 				_p_.gcw.pauseGen = gcWorkPauseGen
+				// Capture the G's stack.
+				for i := range _p_.gcw.pauseStack {
+					_p_.gcw.pauseStack[i] = 0
+				}
+				callers(1, _p_.gcw.pauseStack[:])
 			}
 		})
 		casgstatus(gp, _Gwaiting, _Grunning)
