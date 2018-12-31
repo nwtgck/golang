@@ -329,6 +329,9 @@ func walkstmt(n *Node) *Node {
 	case ORETJMP:
 		break
 
+	case OINLMARK:
+		break
+
 	case OSELECT:
 		walkselect(n)
 
