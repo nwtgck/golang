@@ -1,5 +1,5 @@
 # (from: https://tnishinaga.hatenablog.com/entry/2015/02/28/045304)
-FROM ubuntu:16.04
+FROM ubuntu:20.04
 
 LABEL maintainer="Ryo Ota <nwtgck@gmail.com>"
 
